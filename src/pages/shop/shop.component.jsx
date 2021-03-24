@@ -2,7 +2,7 @@ import React from 'react'
 import { Route } from "react-router-dom";
 
 import CollectionsOverview
-  from "../../compnonents/collections-overview/collections-overview.component";
+  from "../../components/collections-overview/collections-overview.component";
 
 import CollectionPage from "../collection/collection.component";
 

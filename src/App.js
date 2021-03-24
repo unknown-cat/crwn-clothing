@@ -9,7 +9,7 @@ import SignInSignUpPage
   from "./pages/sign-in-sign-out/sign-in-sign-out.component";
 import CheckoutPage from "./pages/checkout/checkout.component";
 
-import Header from "./compnonents/header/header.component";
+import Header from "./components/header/header.component";
 
 import { auth, createUserProfileDocument } from "./firebase/firebase.utils";
 
