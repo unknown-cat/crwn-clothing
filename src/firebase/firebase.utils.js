@@ -3,45 +3,72 @@ import 'firebase/firestore'
 import 'firebase/auth'
 
 const config = {
-  apiKey: "AIzaSyCtDbE0DwZnhR8AfbjI5m3CN-g2Xt_hyOg",
-  authDomain: "crwn-db-c5648.firebaseapp.com",
-  databaseURL: "https://crwn-db-c5648-default-rtdb.firebaseio.com",
-  projectId: "crwn-db-c5648",
-  storageBucket: "crwn-db-c5648.appspot.com",
-  messagingSenderId: "44763808733",
-  appId: "1:44763808733:web:c6f57c12624523f09d6c34",
-  measurementId: "G-W1B02RJ7SY"
+	apiKey: "AIzaSyCtDbE0DwZnhR8AfbjI5m3CN-g2Xt_hyOg",
+	authDomain: "crwn-db-c5648.firebaseapp.com",
+	databaseURL: "https://crwn-db-c5648-default-rtdb.firebaseio.com",
+	projectId: "crwn-db-c5648",
+	storageBucket: "crwn-db-c5648.appspot.com",
+	messagingSenderId: "44763808733",
+	appId: "1:44763808733:web:c6f57c12624523f09d6c34",
+	measurementId: "G-W1B02RJ7SY"
 };
 
 firebase.initializeApp(config);
 
-
 export const createUserProfileDocument = async (userAuth, additionalData) => {
-  if (!userAuth) return;
+	if (!userAuth) return;
+	const userRef = firestore.doc(`users/${ userAuth.uid }`);
 
-  const userRef = firestore.doc(`users/${ userAuth.uid }`);
+	const snapShot = await userRef.get();
 
-  const snapShot = await userRef.get();
+	if (!snapShot.exists) {
+		const { displayName, email } = userAuth;
+		const createAt = new Date();
 
-  if (!snapShot.exists) {
-    const { displayName, email } = userAuth;
-    const createAt = new Date();
+		try {
+			await userRef.set({
+				displayName,
+				email,
+				createAt,
+				...additionalData
+			})
+		} catch (err) {
+			console.log('error creating user', err.message)
+		}
+	}
 
-    try {
-      await userRef.set({
-        displayName,
-        email,
-        createAt,
-        ...additionalData
-      })
-    } catch (err) {
-      console.log('error creating user', err.message)
-    }
-  }
-
-  return userRef;
+	return userRef;
 };
 
+export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => {
+	const collectionRef = firestore.collection(collectionKey);
+
+	const batch = firestore.batch();
+	objectsToAdd.forEach(obj => {
+		const newDocRef = collectionRef.doc();
+		batch.set(newDocRef, obj)
+	})
+
+	return await batch.commit()
+}
+
+export const convertCollectionsSnapshotToMap = (collections) => {
+	const transformedCollection = collections.docs.map(doc => {
+		const { title, items } = doc.data();
+
+		return {
+			routeName: encodeURI(title.toLowerCase()),
+			id: doc.id,
+			title,
+			items
+		}
+	});
+
+	return transformedCollection.reduce((accumulator, collection) => {
+		accumulator[collection.title.toLowerCase()] = collection;
+		return accumulator;
+	}, {})
+};
 
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
